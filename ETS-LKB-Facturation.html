@@ -1,0 +1,841 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>ETS LKB Company — Facturation</title>
+<meta name="description" content="Application de facturation ETS LKB Company : devis, commandes, bons de livraison, factures.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='20' fill='%230C2B2A'/%3E%3Ctext x='50' y='65' font-size='40' font-family='Georgia,serif' fill='%2317C7B0' text-anchor='middle'%3ELKB%3C/text%3E%3C/svg%3E">
+<style>
+:root{
+  --teal-900:#0C2B2A;
+  --teal-700:#124A47;
+  --teal-500:#17C7B0;
+  --teal-100:#E4FBF7;
+  --amber:#D98B2B;
+  --paper:#F7F9F8;
+  --card:#FFFFFF;
+  --ink:#12211F;
+  --slate-600:#4C605D;
+  --slate-400:#8CA19D;
+  --line:#DCE8E5;
+  --danger:#C0392B;
+  --ok:#1E8E5A;
+  --radius:12px;
+  --shadow:0 8px 26px -12px rgba(12,43,42,.18);
+  --font:'Segoe UI',system-ui,-apple-system,Roboto,Helvetica,Arial,sans-serif;
+}
+*{box-sizing:border-box;}
+body{margin:0;font-family:var(--font);background:var(--paper);color:var(--ink);line-height:1.5;}
+h1,h2,h3{margin:0 0 .4em;font-weight:700;}
+p{margin:0 0 .8em;}
+button{font-family:inherit;cursor:pointer;}
+input,select{font-family:inherit;font-size:.95rem;}
+table{border-collapse:collapse;width:100%;}
+
+/* ============ Topbar ============ */
+.topbar{
+  background:var(--teal-900);color:#fff;padding:.9rem 1.2rem;
+  display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:.6rem;
+  position:sticky;top:0;z-index:50;
+}
+.brand{display:flex;align-items:center;gap:.7rem;}
+.brand .mark{
+  width:38px;height:38px;border-radius:9px;background:var(--teal-500);color:var(--teal-900);
+  display:flex;align-items:center;justify-content:center;font-weight:700;font-size:.8rem;flex:none;
+}
+.brand strong{font-size:1.02rem;}
+.brand small{display:block;color:var(--teal-500);font-size:.72rem;}
+
+.tabs{display:flex;flex-wrap:wrap;gap:.3rem;}
+.tabs button{
+  background:transparent;border:1px solid rgba(255,255,255,.2);color:#cfe9e6;
+  padding:.5em .9em;border-radius:999px;font-size:.85rem;transition:.15s;
+}
+.tabs button.active{background:var(--teal-500);color:var(--teal-900);border-color:var(--teal-500);font-weight:600;}
+.tabs button:hover:not(.active){border-color:#fff;color:#fff;}
+
+/* ============ Layout ============ */
+.wrap{max-width:1100px;margin:0 auto;padding:1.4rem 1.2rem 4rem;}
+.tab{display:none;}
+.tab.active{display:block;animation:fade .25s ease;}
+@keyframes fade{from{opacity:0;transform:translateY(6px);}to{opacity:1;transform:none;}}
+
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:1.3rem 1.4rem;box-shadow:var(--shadow);margin-bottom:1.2rem;}
+.card h2{font-size:1.15rem;}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:1rem;}
+.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:1rem;}
+@media (max-width:760px){.grid2,.grid3{grid-template-columns:1fr;}}
+
+label{display:block;font-size:.8rem;color:var(--slate-600);margin-bottom:.3em;font-weight:600;}
+input[type=text],input[type=number],input[type=date],input[type=email],select,textarea{
+  width:100%;padding:.6em .7em;border:1px solid var(--line);border-radius:8px;background:#fff;color:var(--ink);
+}
+input:focus,select:focus,textarea:focus{outline:2px solid var(--teal-500);outline-offset:1px;}
+.field{margin-bottom:.9rem;}
+
+.btn{
+  display:inline-flex;align-items:center;gap:.5em;padding:.65em 1.2em;border-radius:8px;border:1px solid transparent;
+  font-weight:600;font-size:.9rem;transition:.15s;
+}
+.btn.primary{background:var(--teal-500);color:var(--teal-900);}
+.btn.primary:hover{background:#12ab97;}
+.btn.ghost{background:#fff;border-color:var(--line);color:var(--ink);}
+.btn.ghost:hover{border-color:var(--teal-500);}
+.btn.danger{background:#fdeceb;color:var(--danger);}
+.btn.danger:hover{background:#f8d7d3;}
+.btn.sm{padding:.4em .8em;font-size:.8rem;}
+.btn-row{display:flex;gap:.6rem;flex-wrap:wrap;margin-top:1rem;}
+
+table.data th{
+  text-align:left;font-size:.72rem;text-transform:uppercase;letter-spacing:.04em;color:var(--slate-600);
+  padding:.5em .6em;border-bottom:2px solid var(--line);
+}
+table.data td{padding:.55em .6em;border-bottom:1px solid var(--line);font-size:.9rem;vertical-align:middle;}
+table.data tr:last-child td{border-bottom:none;}
+.table-wrap{overflow-x:auto;}
+
+.pill{display:inline-block;padding:.25em .7em;border-radius:999px;font-size:.75rem;font-weight:600;}
+.pill.paye{background:#e4f7ec;color:var(--ok);}
+.pill.impaye{background:#fdeceb;color:var(--danger);}
+.pill.partiel{background:#fff4e2;color:var(--amber);}
+
+.doc-type-picker{display:flex;gap:.6rem;flex-wrap:wrap;margin-bottom:1.2rem;}
+.doc-type-picker button{
+  flex:1;min-width:140px;padding:.9em;border-radius:10px;border:2px solid var(--line);background:#fff;
+  font-weight:700;color:var(--slate-600);text-align:center;
+}
+.doc-type-picker button.active{border-color:var(--teal-500);color:var(--teal-700);background:var(--teal-100);}
+
+.lines-table input{padding:.4em .5em;font-size:.85rem;}
+.lines-table td{padding:.35em;}
+.totals{margin-top:1rem;margin-left:auto;max-width:320px;}
+.totals .row{display:flex;justify-content:space-between;padding:.35em 0;font-size:.92rem;}
+.totals .row.grand{font-weight:700;font-size:1.05rem;border-top:2px solid var(--line);padding-top:.6em;color:var(--teal-700);}
+
+.muted{color:var(--slate-400);font-size:.85rem;}
+.empty{padding:1.5rem;text-align:center;color:var(--slate-400);}
+
+.help-box{background:var(--teal-100);border:1px solid #bfe9e2;border-radius:var(--radius);padding:1.1rem 1.3rem;margin-bottom:1.2rem;}
+.help-box h3{color:var(--teal-700);font-size:1rem;}
+.help-box ol,.help-box ul{margin:.4em 0 0;padding-left:1.2em;}
+.help-box li{margin-bottom:.4em;}
+
+.toast{
+  position:fixed;bottom:1.2rem;left:50%;transform:translateX(-50%) translateY(20px);
+  background:var(--teal-900);color:#fff;padding:.8em 1.4em;border-radius:999px;font-size:.88rem;
+  opacity:0;pointer-events:none;transition:.25s ease;z-index:200;box-shadow:var(--shadow);
+}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+
+/* ============ Print ============ */
+#printArea{display:none;}
+@media print{
+  body *{visibility:hidden;}
+  #printArea, #printArea *{visibility:visible;}
+  #printArea{display:block;position:absolute;left:0;top:0;width:100%;padding:0;}
+  .doc-header{display:flex;justify-content:space-between;align-items:flex-start;border-bottom:3px solid #0C2B2A;padding-bottom:14px;margin-bottom:18px;}
+  .doc-header .company strong{font-size:1.3rem;display:block;color:#0C2B2A;}
+  .doc-header .meta{text-align:right;font-size:.85rem;}
+  .doc-header .meta div{margin-bottom:2px;}
+  .doc-title{font-size:1.6rem;font-weight:700;color:#0C2B2A;letter-spacing:.03em;margin-bottom:4px;}
+  .doc-client{margin-bottom:18px;font-size:.92rem;}
+  .doc-client strong{display:block;margin-bottom:2px;}
+  table.doc-lines{width:100%;border-collapse:collapse;margin-bottom:18px;}
+  table.doc-lines th{background:#0C2B2A;color:#fff;text-align:left;padding:8px 10px;font-size:.78rem;text-transform:uppercase;}
+  table.doc-lines td{padding:8px 10px;border-bottom:1px solid #ddd;font-size:.9rem;}
+  .doc-totals{margin-left:auto;width:280px;}
+  .doc-totals .row{display:flex;justify-content:space-between;padding:5px 0;font-size:.92rem;}
+  .doc-totals .row.grand{font-weight:700;font-size:1.1rem;border-top:2px solid #0C2B2A;padding-top:8px;}
+  .doc-footer{margin-top:30px;padding-top:14px;border-top:1px solid #ccc;font-size:.8rem;color:#555;text-align:center;}
+}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="brand">
+    <span class="mark">LKB</span>
+    <div><strong>ETS LKB Company</strong><small>Facturation</small></div>
+  </div>
+  <div class="tabs" id="tabs">
+    <button data-tab="nouveau" class="active">Nouveau document</button>
+    <button data-tab="historique">Historique</button>
+    <button data-tab="catalogue">Catalogue</button>
+    <button data-tab="clients">Clients</button>
+    <button data-tab="parametres">Paramètres</button>
+    <button data-tab="aide">Aide</button>
+  </div>
+</div>
+
+<div class="wrap">
+
+  <!-- ===================== NOUVEAU DOCUMENT ===================== -->
+  <section id="tab-nouveau" class="tab active">
+    <div class="card">
+      <h2>Type de document</h2>
+      <div class="doc-type-picker" id="docTypePicker">
+        <button data-type="devis" class="active">Devis</button>
+        <button data-type="commande">Bon de commande</button>
+        <button data-type="livraison">Bon de livraison</button>
+        <button data-type="facture">Facture</button>
+      </div>
+
+      <div class="grid2">
+        <div class="field">
+          <label>Client (sélectionner ou saisir manuellement)</label>
+          <select id="clientSelect"><option value="">— Nouveau client —</option></select>
+        </div>
+        <div class="field">
+          <label>Nom du client</label>
+          <input type="text" id="clientNom" placeholder="Nom complet">
+        </div>
+        <div class="field">
+          <label>Adresse</label>
+          <input type="text" id="clientAdresse" placeholder="Adresse">
+        </div>
+        <div class="field">
+          <label>Téléphone</label>
+          <input type="text" id="clientTel" placeholder="+243 ...">
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>Articles / prestations</h2>
+      <div class="table-wrap">
+        <table class="data lines-table" id="linesTable">
+          <thead>
+            <tr><th style="width:16%">Référence</th><th>Désignation</th><th style="width:14%">Prix unit. (CDF)</th><th style="width:9%">Qté</th><th style="width:14%">Total</th><th style="width:5%"></th></tr>
+          </thead>
+          <tbody id="linesBody"></tbody>
+        </table>
+      </div>
+      <div class="btn-row">
+        <button class="btn ghost sm" id="addLineBtn">+ Ajouter une ligne</button>
+      </div>
+
+      <div class="totals">
+        <div class="row"><span>Montant total HT</span><span id="totalHT">0</span></div>
+        <div class="row"><span>TVA (20%)</span><span id="totalTVA">0</span></div>
+        <div class="row grand"><span>Montant total TTC</span><span id="totalTTC">0</span></div>
+      </div>
+
+      <div class="btn-row">
+        <button class="btn primary" id="saveDocBtn">Enregistrer le document</button>
+        <button class="btn ghost" id="printDocBtn">Aperçu / Imprimer / PDF</button>
+        <button class="btn ghost" id="resetDocBtn">Nouveau (vider)</button>
+      </div>
+      <p class="muted" id="docNumberPreview" style="margin-top:.8rem"></p>
+    </div>
+  </section>
+
+  <!-- ===================== HISTORIQUE ===================== -->
+  <section id="tab-historique" class="tab">
+    <div class="card">
+      <h2>Historique des documents</h2>
+      <div class="grid3" style="margin-bottom:1rem">
+        <div class="field"><label>Filtrer par type</label>
+          <select id="filterType">
+            <option value="">Tous</option>
+            <option value="devis">Devis</option>
+            <option value="commande">Bon de commande</option>
+            <option value="livraison">Bon de livraison</option>
+            <option value="facture">Facture</option>
+          </select>
+        </div>
+        <div class="field"><label>Rechercher (client, numéro)</label>
+          <input type="text" id="filterSearch" placeholder="Rechercher...">
+        </div>
+      </div>
+      <div class="table-wrap">
+        <table class="data" id="historyTable">
+          <thead>
+            <tr><th>N°</th><th>Type</th><th>Date</th><th>Client</th><th>Montant TTC</th><th>Paiement</th><th></th></tr>
+          </thead>
+          <tbody id="historyBody"></tbody>
+        </table>
+      </div>
+      <div class="empty" id="historyEmpty" style="display:none">Aucun document enregistré pour l'instant.</div>
+    </div>
+  </section>
+
+  <!-- ===================== CATALOGUE ===================== -->
+  <section id="tab-catalogue" class="tab">
+    <div class="card">
+      <h2>Catalogue produits / services</h2>
+      <div class="grid3">
+        <div class="field"><label>Référence</label><input type="text" id="catRef" placeholder="Réf_001"></div>
+        <div class="field"><label>Désignation</label><input type="text" id="catDesignation" placeholder="Nom du produit / service"></div>
+        <div class="field"><label>Prix (CDF)</label><input type="number" id="catPrix" placeholder="0"></div>
+      </div>
+      <div class="btn-row"><button class="btn primary" id="addCatBtn">+ Ajouter au catalogue</button></div>
+    </div>
+    <div class="card">
+      <div class="table-wrap">
+        <table class="data" id="catTable">
+          <thead><tr><th>Référence</th><th>Désignation</th><th>Prix</th><th></th></tr></thead>
+          <tbody id="catBody"></tbody>
+        </table>
+      </div>
+      <div class="empty" id="catEmpty" style="display:none">Aucun produit enregistré.</div>
+    </div>
+  </section>
+
+  <!-- ===================== CLIENTS ===================== -->
+  <section id="tab-clients" class="tab">
+    <div class="card">
+      <h2>Fichier clients</h2>
+      <div class="grid3">
+        <div class="field"><label>Nom</label><input type="text" id="cliNom" placeholder="Nom complet"></div>
+        <div class="field"><label>Adresse</label><input type="text" id="cliAdresse" placeholder="Adresse"></div>
+        <div class="field"><label>Téléphone</label><input type="text" id="cliTel" placeholder="+243 ..."></div>
+      </div>
+      <div class="btn-row"><button class="btn primary" id="addCliBtn">+ Ajouter un client</button></div>
+    </div>
+    <div class="card">
+      <div class="table-wrap">
+        <table class="data" id="cliTable">
+          <thead><tr><th>Nom</th><th>Adresse</th><th>Téléphone</th><th></th></tr></thead>
+          <tbody id="cliBody"></tbody>
+        </table>
+      </div>
+      <div class="empty" id="cliEmpty" style="display:none">Aucun client enregistré.</div>
+    </div>
+  </section>
+
+  <!-- ===================== PARAMETRES ===================== -->
+  <section id="tab-parametres" class="tab">
+    <div class="card">
+      <h2>Informations de l'entreprise</h2>
+      <p class="muted">Ces informations apparaissent sur tous vos devis, commandes, bons de livraison et factures.</p>
+      <div class="grid2">
+        <div class="field"><label>Nom de l'entreprise</label><input type="text" id="pNom"></div>
+        <div class="field"><label>Adresse</label><input type="text" id="pAdresse"></div>
+        <div class="field"><label>Téléphone(s)</label><input type="text" id="pTel"></div>
+        <div class="field"><label>Email</label><input type="text" id="pEmail"></div>
+        <div class="field"><label>Site / réseau social</label><input type="text" id="pSite"></div>
+        <div class="field"><label>Taux de TVA (%)</label><input type="number" id="pTva" value="20"></div>
+      </div>
+      <div class="btn-row"><button class="btn primary" id="saveParamsBtn">Enregistrer</button></div>
+    </div>
+
+    <div class="card">
+      <h2>Sauvegarde de vos données</h2>
+      <p class="muted">Toutes vos données (documents, catalogue, clients) sont stockées uniquement sur cet appareil, dans ce navigateur. Elles ne se transfèrent pas automatiquement entre votre PC et votre téléphone. Utilisez cette sauvegarde pour les transporter d'un appareil à l'autre.</p>
+      <div class="btn-row">
+        <button class="btn ghost" id="exportBtn">💾 Exporter une sauvegarde (fichier)</button>
+        <label class="btn ghost" style="margin:0">
+          📂 Importer une sauvegarde
+          <input type="file" id="importFile" accept="application/json" style="display:none">
+        </label>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===================== AIDE ===================== -->
+  <section id="tab-aide" class="tab">
+    <div class="help-box">
+      <h3>Créer un document</h3>
+      <ol>
+        <li>Onglet <strong>Nouveau document</strong> → choisissez le type (Devis, Commande, Livraison, Facture).</li>
+        <li>Sélectionnez un client existant ou remplissez ses informations.</li>
+        <li>Ajoutez vos articles avec <strong>+ Ajouter une ligne</strong> — les totaux se calculent automatiquement.</li>
+        <li><strong>Enregistrer le document</strong> pour le garder dans l'historique, puis <strong>Aperçu / Imprimer / PDF</strong> pour l'envoyer au client.</li>
+      </ol>
+    </div>
+    <div class="help-box">
+      <h3>Enregistrer en PDF ou imprimer — Ordinateur</h3>
+      <ol>
+        <li>Cliquez sur <strong>Aperçu / Imprimer / PDF</strong>.</li>
+        <li>Dans la fenêtre d'impression, choisissez l'imprimante <strong>« Enregistrer en PDF »</strong> (ou votre imprimante physique).</li>
+        <li>Cliquez sur Enregistrer / Imprimer.</li>
+      </ol>
+    </div>
+    <div class="help-box">
+      <h3>Enregistrer en PDF — Android (Chrome)</h3>
+      <ol>
+        <li>Appuyez sur <strong>Aperçu / Imprimer / PDF</strong>.</li>
+        <li>Dans l'aperçu qui s'ouvre, appuyez sur l'icône d'impression.</li>
+        <li>En haut, à la ligne « Imprimante », choisissez <strong>Enregistrer au format PDF</strong>.</li>
+        <li>Appuyez sur la flèche de téléchargement, puis choisissez l'emplacement pour enregistrer le fichier.</li>
+      </ol>
+    </div>
+    <div class="help-box">
+      <h3>Enregistrer en PDF — iPhone (Safari)</h3>
+      <ol>
+        <li>Appuyez sur <strong>Aperçu / Imprimer / PDF</strong>.</li>
+        <li>Dans l'aperçu d'impression qui s'affiche, pincez l'aperçu avec deux doigts pour l'agrandir (astuce Safari qui transforme l'aperçu en PDF).</li>
+        <li>Appuyez sur l'icône de partage (carré avec une flèche) en haut à droite ou à gauche de l'écran.</li>
+        <li>Choisissez <strong>Enregistrer dans Fichiers</strong>, ou envoyez-le directement par WhatsApp / Email depuis ce menu de partage.</li>
+      </ol>
+    </div>
+    <div class="help-box">
+      <h3>Utiliser l'app sur plusieurs appareils</h3>
+      <p style="margin-bottom:.4em">Cette application fonctionne <strong>entièrement dans votre navigateur</strong>, sans connexion internet nécessaire une fois ouverte. Mais elle ne partage pas automatiquement les données entre votre PC et votre téléphone.</p>
+      <p style="margin-bottom:0">Pour transporter vos données : ouvrez l'onglet <strong>Paramètres</strong> → <strong>Exporter une sauvegarde</strong> sur l'appareil source, envoyez-vous le fichier (WhatsApp, email...), puis <strong>Importer une sauvegarde</strong> sur l'autre appareil.</p>
+    </div>
+    <div class="help-box">
+      <h3>Installer l'app comme une icône sur l'écran d'accueil</h3>
+      <p style="margin-bottom:.3em"><strong>Android (Chrome)</strong> : menu ⋮ → « Ajouter à l'écran d'accueil ».</p>
+      <p style="margin-bottom:0"><strong>iPhone (Safari)</strong> : icône de partage → « Sur l'écran d'accueil ».</p>
+    </div>
+  </section>
+
+</div>
+
+<!-- Zone imprimable (invisible à l'écran, visible seulement à l'impression) -->
+<div id="printArea"></div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+(function(){
+"use strict";
+
+/* ================= Stockage ================= */
+var STORE = {
+  params: "lkb_params",
+  catalogue: "lkb_catalogue",
+  clients: "lkb_clients",
+  documents: "lkb_documents",
+  counters: "lkb_counters"
+};
+
+function load(key, fallback) {
+  try { var v = localStorage.getItem(key); return v ? JSON.parse(v) : fallback; }
+  catch (e) { return fallback; }
+}
+function save(key, value) { localStorage.setItem(key, JSON.stringify(value)); }
+
+var defaultParams = {
+  nom: "Ets LKB Company",
+  adresse: "République Démocratique du Congo",
+  tel: "+243 975140465 / 840485208 / 823 620 007",
+  email: "companylkb@gmail.com",
+  site: "https://lkb.dpdns.org/",
+  tva: 20
+};
+var defaultCatalogue = [
+  { ref: "Réf_001", designation: "Imprimante Canon", prix: 1500000 },
+  { ref: "Réf_002", designation: "Imprimante HP", prix: 1500000 }
+];
+var defaultClients = [
+  { nom: "Imara Iragi Yann", adresse: "République Démocratique du Congo", tel: "+243 975140465" },
+  { nom: "Kinja Imara Key", adresse: "République Démocratique du Congo", tel: "+243 975140465" }
+];
+
+var params = load(STORE.params, defaultParams);
+var catalogue = load(STORE.catalogue, defaultCatalogue);
+var clients = load(STORE.clients, defaultClients);
+var documents = load(STORE.documents, []);
+var counters = load(STORE.counters, { devis: 0, commande: 0, livraison: 0, facture: 0 });
+
+var TYPE_LABELS = { devis: "DEVIS", commande: "BON DE COMMANDE", livraison: "BON DE LIVRAISON", facture: "FACTURE" };
+var TYPE_PREFIX = { devis: "D", commande: "C", livraison: "L", facture: "F" };
+
+/* ================= Toast ================= */
+var toastEl = document.getElementById("toast");
+function toast(msg) {
+  toastEl.textContent = msg;
+  toastEl.classList.add("show");
+  setTimeout(function(){ toastEl.classList.remove("show"); }, 2200);
+}
+
+/* ================= Onglets ================= */
+document.querySelectorAll(".tabs button").forEach(function (btn) {
+  btn.addEventListener("click", function () {
+    document.querySelectorAll(".tabs button").forEach(function (b) { b.classList.remove("active"); });
+    document.querySelectorAll(".tab").forEach(function (t) { t.classList.remove("active"); });
+    btn.classList.add("active");
+    document.getElementById("tab-" + btn.dataset.tab).classList.add("active");
+    if (btn.dataset.tab === "historique") renderHistory();
+    if (btn.dataset.tab === "catalogue") renderCatalogue();
+    if (btn.dataset.tab === "clients") renderClients();
+    if (btn.dataset.tab === "parametres") fillParamsForm();
+  });
+});
+
+/* ================= Nouveau document ================= */
+var currentType = "devis";
+var lines = [];
+
+document.querySelectorAll("#docTypePicker button").forEach(function (btn) {
+  btn.addEventListener("click", function () {
+    document.querySelectorAll("#docTypePicker button").forEach(function (b) { b.classList.remove("active"); });
+    btn.classList.add("active");
+    currentType = btn.dataset.type;
+    updateDocNumberPreview();
+  });
+});
+
+function updateDocNumberPreview() {
+  var next = (counters[currentType] || 0) + 1;
+  var year = new Date().getFullYear();
+  var numero = TYPE_PREFIX[currentType] + year + "-" + String(next).padStart(4, "0");
+  document.getElementById("docNumberPreview").textContent = "Prochain numéro : " + numero;
+}
+
+function refreshClientSelect() {
+  var sel = document.getElementById("clientSelect");
+  sel.innerHTML = '<option value="">— Nouveau client —</option>';
+  clients.forEach(function (c, i) {
+    var opt = document.createElement("option");
+    opt.value = i;
+    opt.textContent = c.nom;
+    sel.appendChild(opt);
+  });
+}
+document.getElementById("clientSelect").addEventListener("change", function () {
+  var i = this.value;
+  if (i === "") { return; }
+  var c = clients[i];
+  document.getElementById("clientNom").value = c.nom;
+  document.getElementById("clientAdresse").value = c.adresse;
+  document.getElementById("clientTel").value = c.tel;
+});
+
+function addLine(prefill) {
+  lines.push(prefill || { ref: "", designation: "", prix: 0, qte: 1 });
+  renderLines();
+}
+function renderLines() {
+  var tbody = document.getElementById("linesBody");
+  tbody.innerHTML = "";
+  lines.forEach(function (l, idx) {
+    var tr = document.createElement("tr");
+
+    var tdRef = document.createElement("td");
+    var selRef = document.createElement("select");
+    selRef.innerHTML = '<option value="">—</option>' + catalogue.map(function (p, ci) {
+      return '<option value="' + ci + '">' + p.ref + " — " + p.designation + "</option>";
+    }).join("");
+    selRef.addEventListener("change", function () {
+      if (this.value === "") return;
+      var p = catalogue[this.value];
+      lines[idx].ref = p.ref; lines[idx].designation = p.designation; lines[idx].prix = p.prix;
+      renderLines();
+    });
+    tdRef.appendChild(selRef);
+
+    var tdDes = document.createElement("td");
+    var inpDes = document.createElement("input");
+    inpDes.type = "text"; inpDes.value = l.designation; inpDes.placeholder = "Désignation";
+    inpDes.addEventListener("input", function () { lines[idx].designation = this.value; });
+    tdDes.appendChild(inpDes);
+
+    var tdPrix = document.createElement("td");
+    var inpPrix = document.createElement("input");
+    inpPrix.type = "number"; inpPrix.value = l.prix;
+    inpPrix.addEventListener("input", function () { lines[idx].prix = parseFloat(this.value) || 0; renderTotals(); });
+    tdPrix.appendChild(inpPrix);
+
+    var tdQte = document.createElement("td");
+    var inpQte = document.createElement("input");
+    inpQte.type = "number"; inpQte.value = l.qte; inpQte.min = "0";
+    inpQte.addEventListener("input", function () { lines[idx].qte = parseFloat(this.value) || 0; renderTotals(); });
+    tdQte.appendChild(inpQte);
+
+    var tdTotal = document.createElement("td");
+    tdTotal.textContent = formatMoney((l.prix || 0) * (l.qte || 0));
+
+    var tdDel = document.createElement("td");
+    var delBtn = document.createElement("button");
+    delBtn.className = "btn danger sm"; delBtn.textContent = "✕";
+    delBtn.addEventListener("click", function () { lines.splice(idx, 1); renderLines(); });
+    tdDel.appendChild(delBtn);
+
+    tr.appendChild(tdRef); tr.appendChild(tdDes); tr.appendChild(tdPrix); tr.appendChild(tdQte); tr.appendChild(tdTotal); tr.appendChild(tdDel);
+    tbody.appendChild(tr);
+  });
+  renderTotals();
+}
+function renderTotals() {
+  var ht = lines.reduce(function (s, l) { return s + (l.prix || 0) * (l.qte || 0); }, 0);
+  var tvaRate = (params.tva != null ? params.tva : 20) / 100;
+  var tva = ht * tvaRate;
+  var ttc = ht + tva;
+  document.getElementById("totalHT").textContent = formatMoney(ht);
+  document.getElementById("totalTVA").textContent = formatMoney(tva);
+  document.getElementById("totalTTC").textContent = formatMoney(ttc);
+}
+function formatMoney(n) {
+  return Math.round(n).toLocaleString("fr-FR");
+}
+
+document.getElementById("addLineBtn").addEventListener("click", function () { addLine(); });
+
+document.getElementById("resetDocBtn").addEventListener("click", function () {
+  lines = [];
+  document.getElementById("clientSelect").value = "";
+  document.getElementById("clientNom").value = "";
+  document.getElementById("clientAdresse").value = "";
+  document.getElementById("clientTel").value = "";
+  renderLines();
+  updateDocNumberPreview();
+});
+
+function currentDocData(useExistingNumber) {
+  var ht = lines.reduce(function (s, l) { return s + (l.prix || 0) * (l.qte || 0); }, 0);
+  var tvaRate = (params.tva != null ? params.tva : 20) / 100;
+  var tva = ht * tvaRate;
+  var ttc = ht + tva;
+  return {
+    type: currentType,
+    client: {
+      nom: document.getElementById("clientNom").value || "Client",
+      adresse: document.getElementById("clientAdresse").value || "",
+      tel: document.getElementById("clientTel").value || ""
+    },
+    lignes: lines.slice(),
+    totalHT: ht, tva: tva, totalTTC: ttc,
+    date: new Date().toISOString().slice(0, 10),
+    etatPaiement: "Impayé",
+    modePaiement: ""
+  };
+}
+
+document.getElementById("saveDocBtn").addEventListener("click", function () {
+  if (!lines.length) { toast("Ajoutez au moins une ligne avant d'enregistrer."); return; }
+  var doc = currentDocData();
+  counters[currentType] = (counters[currentType] || 0) + 1;
+  var year = new Date().getFullYear();
+  doc.numero = TYPE_PREFIX[currentType] + year + "-" + String(counters[currentType]).padStart(4, "0");
+  doc.id = Date.now();
+  documents.unshift(doc);
+  save(STORE.documents, documents);
+  save(STORE.counters, counters);
+
+  // Si nouveau client, on le propose à l'ajout au fichier clients
+  var nomVal = doc.client.nom;
+  var exists = clients.some(function (c) { return c.nom === nomVal; });
+  if (!exists && nomVal && nomVal !== "Client") {
+    clients.push({ nom: doc.client.nom, adresse: doc.client.adresse, tel: doc.client.tel });
+    save(STORE.clients, clients);
+    refreshClientSelect();
+  }
+
+  toast("Document " + doc.numero + " enregistré.");
+  updateDocNumberPreview();
+});
+
+document.getElementById("printDocBtn").addEventListener("click", function () {
+  if (!lines.length) { toast("Ajoutez au moins une ligne avant d'imprimer."); return; }
+  var doc = currentDocData();
+  var numero = TYPE_PREFIX[currentType] + new Date().getFullYear() + "-" + String((counters[currentType] || 0) + 1).padStart(4, "0");
+  printDocument(doc, numero);
+});
+
+/* ================= Impression ================= */
+function printDocument(doc, numero) {
+  var linesHtml = doc.lignes.map(function (l) {
+    return "<tr><td>" + esc(l.ref || "") + "</td><td>" + esc(l.designation || "") + "</td><td>" + formatMoney(l.prix) + "</td><td>" + l.qte + "</td><td>" + formatMoney((l.prix || 0) * (l.qte || 0)) + "</td></tr>";
+  }).join("");
+
+  var html = ""
+    + '<div class="doc-header">'
+    +   '<div class="company"><strong>' + esc(params.nom) + '</strong>' + esc(params.adresse) + '<br>' + esc(params.tel) + '</div>'
+    +   '<div class="meta"><div class="doc-title">' + TYPE_LABELS[doc.type] + '</div><div>N° ' + esc(numero) + '</div><div>Date : ' + esc(doc.date) + '</div></div>'
+    + '</div>'
+    + '<div class="doc-client"><strong>Client</strong>' + esc(doc.client.nom) + '<br>' + esc(doc.client.adresse) + '<br>' + esc(doc.client.tel) + '</div>'
+    + '<table class="doc-lines"><thead><tr><th>Référence</th><th>Désignation</th><th>Prix unit.</th><th>Qté</th><th>Total</th></tr></thead><tbody>' + linesHtml + '</tbody></table>'
+    + '<div class="doc-totals">'
+    +   '<div class="row"><span>Montant total HT</span><span>' + formatMoney(doc.totalHT) + '</span></div>'
+    +   '<div class="row"><span>TVA (' + (params.tva != null ? params.tva : 20) + '%)</span><span>' + formatMoney(doc.tva) + '</span></div>'
+    +   '<div class="row grand"><span>Montant total TTC</span><span>' + formatMoney(doc.totalTTC) + '</span></div>'
+    + '</div>'
+    + '<div class="doc-footer">Des questions ? Envoyez-nous un email à ' + esc(params.email) + ' ou appelez-nous au ' + esc(params.tel) + '<br>' + esc(params.adresse) + (params.site ? " — " + esc(params.site) : "") + '</div>';
+
+  document.getElementById("printArea").innerHTML = html;
+  window.print();
+}
+function esc(s) {
+  return String(s == null ? "" : s).replace(/[&<>"]/g, function (c) {
+    return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c];
+  });
+}
+
+/* ================= Historique ================= */
+function renderHistory() {
+  var type = document.getElementById("filterType").value;
+  var search = document.getElementById("filterSearch").value.toLowerCase();
+  var tbody = document.getElementById("historyBody");
+  tbody.innerHTML = "";
+  var filtered = documents.filter(function (d) {
+    if (type && d.type !== type) return false;
+    if (search && !((d.numero || "").toLowerCase().indexOf(search) > -1 || (d.client.nom || "").toLowerCase().indexOf(search) > -1)) return false;
+    return true;
+  });
+  document.getElementById("historyEmpty").style.display = filtered.length ? "none" : "block";
+
+  filtered.forEach(function (d) {
+    var tr = document.createElement("tr");
+    var paiementCell = "";
+    if (d.type === "facture") {
+      paiementCell = '<select data-id="' + d.id + '" class="paiementSelect">'
+        + '<option value="Payé"' + (d.etatPaiement === "Payé" ? " selected" : "") + '>Payé</option>'
+        + '<option value="Impayé"' + (d.etatPaiement === "Impayé" ? " selected" : "") + '>Impayé</option>'
+        + '<option value="Partiel"' + (d.etatPaiement === "Partiel" ? " selected" : "") + '>Partiel</option>'
+        + '</select>';
+    } else {
+      paiementCell = '<span class="muted">—</span>';
+    }
+    tr.innerHTML = "<td>" + esc(d.numero) + "</td><td>" + TYPE_LABELS[d.type] + "</td><td>" + esc(d.date) + "</td><td>" + esc(d.client.nom) + "</td><td>" + formatMoney(d.totalTTC) + "</td><td>" + paiementCell + "</td>"
+      + '<td style="white-space:nowrap"><button class="btn ghost sm reprintBtn" data-id="' + d.id + '">Imprimer</button> <button class="btn danger sm delDocBtn" data-id="' + d.id + '">✕</button></td>';
+    tbody.appendChild(tr);
+  });
+
+  tbody.querySelectorAll(".paiementSelect").forEach(function (sel) {
+    sel.addEventListener("change", function () {
+      var doc = documents.find(function (d) { return d.id == this.dataset.id; }.bind(this));
+      if (doc) { doc.etatPaiement = this.value; save(STORE.documents, documents); toast("Statut mis à jour."); }
+    });
+  });
+  tbody.querySelectorAll(".reprintBtn").forEach(function (btn) {
+    btn.addEventListener("click", function () {
+      var doc = documents.find(function (d) { return d.id == btn.dataset.id; });
+      if (doc) printDocument(doc, doc.numero);
+    });
+  });
+  tbody.querySelectorAll(".delDocBtn").forEach(function (btn) {
+    btn.addEventListener("click", function () {
+      if (!confirm("Supprimer ce document de l'historique ?")) return;
+      documents = documents.filter(function (d) { return d.id != btn.dataset.id; });
+      save(STORE.documents, documents);
+      renderHistory();
+    });
+  });
+}
+document.getElementById("filterType").addEventListener("change", renderHistory);
+document.getElementById("filterSearch").addEventListener("input", renderHistory);
+
+/* ================= Catalogue ================= */
+function renderCatalogue() {
+  var tbody = document.getElementById("catBody");
+  tbody.innerHTML = "";
+  document.getElementById("catEmpty").style.display = catalogue.length ? "none" : "block";
+  catalogue.forEach(function (p, idx) {
+    var tr = document.createElement("tr");
+    tr.innerHTML = "<td>" + esc(p.ref) + "</td><td>" + esc(p.designation) + "</td><td>" + formatMoney(p.prix) + "</td><td><button class='btn danger sm delCat' data-i='" + idx + "'>✕</button></td>";
+    tbody.appendChild(tr);
+  });
+  tbody.querySelectorAll(".delCat").forEach(function (btn) {
+    btn.addEventListener("click", function () {
+      catalogue.splice(parseInt(btn.dataset.i), 1);
+      save(STORE.catalogue, catalogue);
+      renderCatalogue();
+    });
+  });
+}
+document.getElementById("addCatBtn").addEventListener("click", function () {
+  var ref = document.getElementById("catRef").value.trim();
+  var designation = document.getElementById("catDesignation").value.trim();
+  var prix = parseFloat(document.getElementById("catPrix").value) || 0;
+  if (!designation) { toast("Indiquez au moins une désignation."); return; }
+  catalogue.push({ ref: ref, designation: designation, prix: prix });
+  save(STORE.catalogue, catalogue);
+  document.getElementById("catRef").value = ""; document.getElementById("catDesignation").value = ""; document.getElementById("catPrix").value = "";
+  renderCatalogue();
+  toast("Produit ajouté au catalogue.");
+});
+
+/* ================= Clients ================= */
+function renderClients() {
+  var tbody = document.getElementById("cliBody");
+  tbody.innerHTML = "";
+  document.getElementById("cliEmpty").style.display = clients.length ? "none" : "block";
+  clients.forEach(function (c, idx) {
+    var tr = document.createElement("tr");
+    tr.innerHTML = "<td>" + esc(c.nom) + "</td><td>" + esc(c.adresse) + "</td><td>" + esc(c.tel) + "</td><td><button class='btn danger sm delCli' data-i='" + idx + "'>✕</button></td>";
+    tbody.appendChild(tr);
+  });
+  tbody.querySelectorAll(".delCli").forEach(function (btn) {
+    btn.addEventListener("click", function () {
+      clients.splice(parseInt(btn.dataset.i), 1);
+      save(STORE.clients, clients);
+      renderClients();
+      refreshClientSelect();
+    });
+  });
+}
+document.getElementById("addCliBtn").addEventListener("click", function () {
+  var nom = document.getElementById("cliNom").value.trim();
+  var adresse = document.getElementById("cliAdresse").value.trim();
+  var tel = document.getElementById("cliTel").value.trim();
+  if (!nom) { toast("Indiquez au moins un nom."); return; }
+  clients.push({ nom: nom, adresse: adresse, tel: tel });
+  save(STORE.clients, clients);
+  document.getElementById("cliNom").value = ""; document.getElementById("cliAdresse").value = ""; document.getElementById("cliTel").value = "";
+  renderClients();
+  refreshClientSelect();
+  toast("Client ajouté.");
+});
+
+/* ================= Paramètres ================= */
+function fillParamsForm() {
+  document.getElementById("pNom").value = params.nom || "";
+  document.getElementById("pAdresse").value = params.adresse || "";
+  document.getElementById("pTel").value = params.tel || "";
+  document.getElementById("pEmail").value = params.email || "";
+  document.getElementById("pSite").value = params.site || "";
+  document.getElementById("pTva").value = params.tva != null ? params.tva : 20;
+}
+document.getElementById("saveParamsBtn").addEventListener("click", function () {
+  params = {
+    nom: document.getElementById("pNom").value,
+    adresse: document.getElementById("pAdresse").value,
+    tel: document.getElementById("pTel").value,
+    email: document.getElementById("pEmail").value,
+    site: document.getElementById("pSite").value,
+    tva: parseFloat(document.getElementById("pTva").value) || 0
+  };
+  save(STORE.params, params);
+  renderTotals();
+  toast("Paramètres enregistrés.");
+});
+
+/* ================= Export / Import ================= */
+document.getElementById("exportBtn").addEventListener("click", function () {
+  var backup = { params: params, catalogue: catalogue, clients: clients, documents: documents, counters: counters, exportedAt: new Date().toISOString() };
+  var blob = new Blob([JSON.stringify(backup, null, 2)], { type: "application/json" });
+  var url = URL.createObjectURL(blob);
+  var a = document.createElement("a");
+  a.href = url; a.download = "lkb-sauvegarde-" + new Date().toISOString().slice(0, 10) + ".json";
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+  toast("Sauvegarde téléchargée.");
+});
+document.getElementById("importFile").addEventListener("change", function (e) {
+  var file = e.target.files[0];
+  if (!file) return;
+  var reader = new FileReader();
+  reader.onload = function () {
+    try {
+      var data = JSON.parse(reader.result);
+      if (!confirm("Importer cette sauvegarde va remplacer les données actuelles sur cet appareil. Continuer ?")) return;
+      params = data.params || defaultParams;
+      catalogue = data.catalogue || [];
+      clients = data.clients || [];
+      documents = data.documents || [];
+      counters = data.counters || { devis: 0, commande: 0, livraison: 0, facture: 0 };
+      save(STORE.params, params); save(STORE.catalogue, catalogue); save(STORE.clients, clients);
+      save(STORE.documents, documents); save(STORE.counters, counters);
+      fillParamsForm(); renderCatalogue(); renderClients(); renderHistory(); refreshClientSelect();
+      toast("Sauvegarde importée avec succès.");
+    } catch (err) { toast("Fichier de sauvegarde invalide."); }
+  };
+  reader.readAsText(file);
+});
+
+/* ================= Initialisation ================= */
+save(STORE.params, params);
+save(STORE.catalogue, catalogue);
+save(STORE.clients, clients);
+refreshClientSelect();
+addLine();
+updateDocNumberPreview();
+
+})();
+</script>
+</body>
+</html>
